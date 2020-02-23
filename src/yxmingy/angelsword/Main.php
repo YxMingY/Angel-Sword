@@ -25,6 +25,7 @@ class Main extends PluginBase implements Listener
   }
   public function onEnable()
   {
+    @mkdir($this->getDataFolder());
     $this->econf = new Config($this->getDataFolder()."/eConfig.yml",Config::YAML,array());
     $this->xconf = new Config($this->getDataFolder()."/xConfig.yml",Config::YAML,array());
     $this->getServer()->getPluginManager()->registerEvents($this,$this);
@@ -69,22 +70,25 @@ class Main extends PluginBase implements Listener
       $this->handleInput($event->getPlayer(),$start, $line, ($is_e=isset($this->einput[$name])) ? $this->einput[$name] : $this->xinput[$name],$is_e);
     }
   }
-  public function handleInput(Player $player,$start,$line,array &$lines,bool $is_e)
+  public function handleInput(Player $player,$start,$line,array $lines,bool $is_e)
   {
+    $name = $player->getName();
     switch ($start){
       case "#":
         $lines[] = $line;
+        array_push(($is_e ? $this->einput[$name] : $this->xinput[$name]), $line);
         $player->sendMessage("New line is inputted, all code:\n".implode("\n", $lines));
         break;
       case "!":
         array_pop($lines);
+        array_pop(($is_e ? $this->einput[$name] : $this->xinput[$name]));
         $player->sendMessage("Recent line is deleted, all code:\n".implode("\n", $lines));
         break;
       case "?":
         $player->sendMessage("Inputting finished, all code:\n".implode("\n", $lines));
         
         if($is_e){
-          $ename = $this->ecache[$player->getName()];
+          $ename = $this->ecache[$name];
           try {
             eval('$this->getServer()->getPluginManager()->registerEvents(new class implements Listener{
               public function onEvent('.$ename.' $event) {
@@ -102,13 +106,13 @@ class Main extends PluginBase implements Listener
           } catch (Exception $e) {
             $player->sendMessage($e->getMessage());
           }
-          unset($this->ecache[$player->getName()]);
-          unset($this->einput[$player->getName()]);
+          unset($this->ecache[$name]);
+          unset($this->einput[$name]);
         }else{
           try {
             eval(implode("\n", $lines));
             $player->sendMessage("Code runned");
-            unset($this->xinput[$player->getName()]);
+            unset($this->xinput[$name]);
           } catch (Exception $e) {
             $player->sendMessage($e->getMessage());
           }
