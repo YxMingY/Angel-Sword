@@ -14,7 +14,6 @@ class Main extends PluginBase implements Listener
 {
   use starter\Starter;
   private $econf;
-  private $xconf;
   private $ecache = [];
   private $einput = [];
   private $xinput = [];
@@ -27,7 +26,6 @@ class Main extends PluginBase implements Listener
   {
     @mkdir($this->getDataFolder());
     $this->econf = new Config($this->getDataFolder()."/eConfig.yml",Config::YAML,array());
-    $this->xconf = new Config($this->getDataFolder()."/xConfig.yml",Config::YAML,array());
     $this->getServer()->getPluginManager()->registerEvents($this,$this);
     $this->registerEvents();
     self::notice("[".self::PLUGIN_NAME."] is Enabled by xMing!");
@@ -42,10 +40,12 @@ class Main extends PluginBase implements Listener
           $sender->sendMessage("usage: /as e [Event]");
           return true;
         }
-        if(!class_exists($args[1],false)){
+        $sender->sendMessage("Checking the Event class isset or not...(If not, AN ERROR will be reported)");
+        if(!class_exists($args[1])){
           $sender->sendMessage("The Event Class $args[1] is not defined");
           return true;
         }
+        $sender->sendMessage("Successfully checked.");
         $this->einput[$sender->getName()] = [];
         $this->ecache[$sender->getName()] = $args[1];
         $sender->sendMessage("Input your code lines which begins with '#'\n'!' line to delete recent line\n'?' line to stop inputting\n\$event is defined");
@@ -92,16 +92,22 @@ class Main extends PluginBase implements Listener
         }$player->sendMessage("Recent line is deleted, all code:\n".implode("\n", $lines));
         break;
       case "?":
-        $player->sendMessage("Inputting finished, all code:\n".implode("\n", $lines));
+        $player->sendMessage("Inputting finished, all code:\n".implode("\n", $lines)."\nCode is running,if not see 'Code runned', your code might have some error(s).");
         
         if($is_e){
           $ename = $this->ecache[$name];
           try {
-            eval('$this->getServer()->getPluginManager()->registerEvents(new class implements Listener{
-              public function onEvent('.$ename.' $event) {
+            eval('$this->getServer()->getPluginManager()->registerEvents(
+            new class($this) implements \pocketmine\event\Listener{
+              private $plugin;
+              public function __construct(\yxmingy\angelsword\Main $plugin){
+                $this->plugin = $plugin;
+              }
+              public function onEventHandle('.$ename.' $event) {
                 '.implode("\n", $lines).'
               }
             }, $this);');
+            $player->sendMessage("Code runned");
             if(!$this->econf->exists($ename)){
               $this->econf->set($ename,[implode("\n", $lines),]);
             }else{
@@ -130,11 +136,16 @@ class Main extends PluginBase implements Listener
   {
     foreach($this->econf->getAll() as $ename=>$ecodes){
       foreach ($ecodes as $code){
-        eval('$this->getServer()->getPluginManager()->registerEvents(new class implements Listener{
-          public function onEvent('.$ename.' $event) {
+        eval('$this->getServer()->getPluginManager()->registerEvents(
+        new class($this) implements \pocketmine\event\Listener{
+          private $plugin;
+          public function __construct(\yxmingy\angelsword\Main $plugin){
+            $this->plugin = $plugin;
+          }
+          public function onEventHandle('.$ename.' $event) {
             '.$code.'
           }
-        }, $this)');
+        }, $this);');
       }
     }
   }
