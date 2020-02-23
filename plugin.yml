@@ -1,0 +1,18 @@
+name: Angel-Sword
+api:
+- 1.0.0
+- 2.0.0
+- 3.0.0
+- 4.0.0
+version: '1.0.0'
+load: POSTWORLD
+main: yxmingy\angelsword\Main
+author: xMing
+commands:
+  as:
+    description: "ccc"
+    permission: yxmingy.command.as
+    usage: "usage: /as [e/x]"
+permissions:
+  yxmingy.command.as:
+    default: op
