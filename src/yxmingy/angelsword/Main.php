@@ -42,7 +42,7 @@ class Main extends PluginBase implements Listener
           $sender->sendMessage("usage: /as e [Event]");
           return true;
         }
-        if(!class_exists($args[1])){
+        if(!class_exists($args[1],false)){
           $sender->sendMessage("The Event Class $args[1] is not defined");
           return true;
         }
@@ -76,13 +76,20 @@ class Main extends PluginBase implements Listener
     switch ($start){
       case "#":
         $lines[] = $line;
-        array_push(($is_e ? $this->einput[$name] : $this->xinput[$name]), $line);
+        if($is_e){
+          $this->einput[$name] = $lines;
+        }else{
+          $this->xinput[$name] = $lines;
+        }
         $player->sendMessage("New line is inputted, all code:\n".implode("\n", $lines));
         break;
       case "!":
         array_pop($lines);
-        array_pop(($is_e ? $this->einput[$name] : $this->xinput[$name]));
-        $player->sendMessage("Recent line is deleted, all code:\n".implode("\n", $lines));
+        if($is_e){
+          $this->einput[$name] = $lines;
+        }else{
+          $this->xinput[$name] = $lines;
+        }$player->sendMessage("Recent line is deleted, all code:\n".implode("\n", $lines));
         break;
       case "?":
         $player->sendMessage("Inputting finished, all code:\n".implode("\n", $lines));
@@ -94,7 +101,7 @@ class Main extends PluginBase implements Listener
               public function onEvent('.$ename.' $event) {
                 '.implode("\n", $lines).'
               }
-            }, $this)');
+            }, $this);');
             if(!$this->econf->exists($ename)){
               $this->econf->set($ename,[implode("\n", $lines),]);
             }else{
