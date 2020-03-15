@@ -17,7 +17,7 @@ class Lang
       "eng"=>"Successfully checked."
     ],
     "input-instruction"=>[
-      "chs"=>'以"#"开头输入你的代码\n以符号"!"单独一行可以删除上一行代码\n以符号"?"单独一行结束你的输入\n变量$event已经被定义',
+      "chs"=>"以'#'开头输入你的代码\n以符号'!'单独一行可以删除上一行代码\n以符号'?'单独一行结束你的输入\n变量\$event已经被定义",
       "eng"=>"Input your code lines which begins with '#'\n'!' line to delete recent line\n'?' line to stop inputting\n\$event is defined"
     ],
     "line-inputted"=>[

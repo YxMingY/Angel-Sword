@@ -64,8 +64,10 @@ class Main extends PluginBase implements Listener
           return false;
         if($args[1] == "chs"){
           self::$lang = "chs";
+          $sender->sendMessage("已将语言切换为中文");
           return true;
         }else if($args[1] == "eng"){
+          $sender->sendMessage("Successly changed the language into English");
           self::$lang = "eng";
           return true;
         }else{
