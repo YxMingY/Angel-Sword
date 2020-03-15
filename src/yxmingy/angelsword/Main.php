@@ -17,6 +17,7 @@ class Main extends PluginBase implements Listener
   private $ecache = [];
   private $einput = [];
   private $xinput = [];
+  private static $lang = "eng";
   const PLUGIN_NAME = "Angel-Sword";
   public function onLoad()
   {
@@ -28,9 +29,13 @@ class Main extends PluginBase implements Listener
     $this->econf = new Config($this->getDataFolder()."/eConfig.yml",Config::YAML,array());
     $this->getServer()->getPluginManager()->registerEvents($this,$this);
     $this->registerEvents();
-    self::notice("[".self::PLUGIN_NAME."] is Enabled by xMing!");
+    self::notice("[".self::PLUGIN_NAME."] is Enabled by xMing! \n[Angle-Sword]指令/as l chs 切换为中文(关服失效)");
   }
-  public function onCommand(CommandSender $sender,Command $command, $label,array $args)
+  public static function getLang():string
+  {
+    return self::$lang;
+  }
+  public function onCommand(CommandSender $sender,Command $command,string $label,array $args):bool
   {
     if(count($args) < 1)
       return false;
@@ -40,20 +45,32 @@ class Main extends PluginBase implements Listener
           $sender->sendMessage("usage: /as e [Event]");
           return true;
         }
-        $sender->sendMessage("Checking the Event class isset or not...(If not, AN ERROR will be reported)");
+        $sender->sendMessage(Lang::parse("check-event-isset"));
         if(!class_exists($args[1])){
-          $sender->sendMessage("The Event Class $args[1] is not defined");
+          $sender->sendMessage(Lang::parse("event-not-defined", $args[1]));
           return true;
         }
-        $sender->sendMessage("Successfully checked.");
+        $sender->sendMessage(Lang::parse("checked"));
         $this->einput[$sender->getName()] = [];
         $this->ecache[$sender->getName()] = $args[1];
-        $sender->sendMessage("Input your code lines which begins with '#'\n'!' line to delete recent line\n'?' line to stop inputting\n\$event is defined");
+        $sender->sendMessage(Lang::parse("input-instruction"));
         return true;
       case "x":
         $this->xinput[$sender->getName()] = [];
-        $sender->sendMessage("Input your code lines which begins with '#'\n'!' line to delete recent line\n'?' line to stop inputting\n\$this is defined");
+        $sender->sendMessage(Lang::parse("input-instruction"));
         return true;
+      case "l":
+        if(!isset($args[1]))
+          return false;
+        if($args[1] == "chs"){
+          self::$lang = "chs";
+          return true;
+        }else if($args[1] == "eng"){
+          self::$lang = "eng";
+          return true;
+        }else{
+          return false;
+        }
       default:
         return false;
     }
@@ -81,7 +98,7 @@ class Main extends PluginBase implements Listener
         }else{
           $this->xinput[$name] = $lines;
         }
-        $player->sendMessage("New line is inputted, all code:\n".implode("\n", $lines));
+        $player->sendMessage(Lang::parse("line-inputted").implode("\n", $lines));
         break;
       case "!":
         array_pop($lines);
@@ -89,10 +106,11 @@ class Main extends PluginBase implements Listener
           $this->einput[$name] = $lines;
         }else{
           $this->xinput[$name] = $lines;
-        }$player->sendMessage("Recent line is deleted, all code:\n".implode("\n", $lines));
+        }
+        $player->sendMessage(Lang::parse("line-deleted").implode("\n", $lines));
         break;
       case "?":
-        $player->sendMessage("Inputting finished, all code:\n".implode("\n", $lines)."\nCode is running,if not see 'Code runned', your code might have some error(s).");
+        $player->sendMessage(Lang::parse("input-finished").implode("\n", $lines)."\n".Lang::parse("code-running"));
         
         if($is_e){
           $ename = $this->ecache[$name];
@@ -107,7 +125,7 @@ class Main extends PluginBase implements Listener
                 '.implode("\n", $lines).'
               }
             }, $this);');
-            $player->sendMessage("Code runned");
+            $player->sendMessage(Lang::parse("run-completed"));
             if(!$this->econf->exists($ename)){
               $this->econf->set($ename,[implode("\n", $lines),]);
             }else{
@@ -124,7 +142,7 @@ class Main extends PluginBase implements Listener
         }else{
           try {
             eval(implode("\n", $lines));
-            $player->sendMessage("Code runned");
+            $player->sendMessage(Lang::parse("run-completed"));
             unset($this->xinput[$name]);
           } catch (Exception $e) {
             $player->sendMessage($e->getMessage());
@@ -151,6 +169,6 @@ class Main extends PluginBase implements Listener
   }
   public function onDisable()
   {
-    self::warning("[".self::PLUGIN_NAME."] is Turned Off.");
+    self::warning("[".self::PLUGIN_NAME."] is Closed.");
   }
 }
